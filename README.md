@@ -71,3 +71,19 @@ Cada capa representa un nivel de calidad, granularidad y preparación de los dat
 - Logging y manejo de excepciones robusto.
 - Modularización y reutilización de funciones.
 
+---
+
+## Capturas
+
+-mailamericas_bronze.ventas
+
+![alt text](image.png)
+
+
+-mailamericas_silver.ventas
+
+![alt text](image-1.png)
+
+-mailamericas_gold.ventas
+
+![alt text](image-2.png)
