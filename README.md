@@ -3,7 +3,7 @@
 
 **Autor:** Italo Contreras Pérez  
 **Rol:** Senior Data Engineer  
-**Stack:** AWS Glue, S3, Athena, QuickSight, Python, PyArrow, Pandas
+**Stack:** AWS Glue, S3, Athena, Python, PyArrow, Pandas
 
 ---
 
@@ -54,7 +54,6 @@ Cada capa representa un nivel de calidad, granularidad y preparación de los dat
 
 ## 🧠 Scripts SQL (Athena)
 
-En `/scripts/sql/`:
 
 | Archivo | Descripción |
 |----------|--------------|
