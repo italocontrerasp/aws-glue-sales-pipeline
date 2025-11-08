@@ -11,7 +11,7 @@
 
 El proyecto implementa un pipeline de datos de ventas multi-capa (**Raw → Bronze → Silver → Gold**) en AWS, diseñado para transformar y analizar la información de ventas proveniente de archivos Excel (.xlsx) por sucursal.  
 
-Cada capa representa un nivel de calidad, granularidad y preparación de los datos para análisis y visualización en **Athena** .
+Cada capa representa un nivel de calidad, granularidad y preparación de los datos para análisis y visualización en **Athena** o **QuickSight**.
 
 ---
 
@@ -22,7 +22,7 @@ Cada capa representa un nivel de calidad, granularidad y preparación de los dat
 | **Raw** | Almacena los archivos originales .xlsx por sucursal. | `s3://mailamericas-datalake/raw/ventas/` | — |
 | **Bronze** | Limpieza y estandarización de columnas. Se genera Parquet particionado. | `s3://mailamericas-datalake/bronze/ventas/` | `ventas_ingest_raw_to_bronze.py` |
 | **Silver** | Enriquecimiento con tipo de cambio y métricas financieras (ARS → USD). | `s3://mailamericas-datalake/silver/ventas/` | `ventas_transform_bronze_to_silver.py` |
-| **Gold** | Agregación analítica (margen, estacionalidad, cumplimiento). | `s3://mailamericas-datalake/gold/ventas/` | `ventas_aggregate_silver_to_gold.py` |
+| **Gold** | Agregación analítica (margen, estacionalidad, cumplimiento). | `s3://mailamericas-datalake/gold/ventas_analiticas/` | `ventas_aggregate_silver_to_gold.py` |
 
 ---
 
@@ -61,7 +61,7 @@ En `/scripts/sql/`:
 | `create_bronze_table.sql` | Crea tabla externa en Athena sobre S3 Bronze. |
 | `create_silver_table.sql` | Crea tabla externa sobre S3 Silver. |
 | `create_gold_table.sql` | Crea tabla externa sobre S3 Gold. |
-
+| `create_reference_table.sql` | Crea tabla de tipo de cambio. |
 
 ---
 
@@ -71,5 +71,4 @@ En `/scripts/sql/`:
 - Validación de columnas y tipos de datos.
 - Logging y manejo de excepciones robusto.
 - Modularización y reutilización de funciones.
-
 
