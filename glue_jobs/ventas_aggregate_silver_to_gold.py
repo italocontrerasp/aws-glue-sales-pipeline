@@ -10,9 +10,7 @@ try:
 except ImportError:
     print("⚙️ Instalando dependencias dinámicamente...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas", "pyarrow", "numpy"])
-    import pandas as pd
-    import pyarrow
-    import numpy as np
+    import pandas as pd, pyarrow, numpy as np
     print(f"✅ pandas {pd.__version__}, pyarrow {pyarrow.__version__}, numpy {np.__version__}")
 
 import io, re, boto3, traceback
@@ -37,7 +35,7 @@ def read_parquet_from_s3(key):
     except Exception as e:
         raise RuntimeError(f"Error leyendo Parquet desde {key}: {type(e).__name__} - {e}")
 
-# --- Función principal de agregación ---
+# --- Función principal ---
 def process_file(key):
     global success_count, error_count, error_files
 
@@ -57,7 +55,6 @@ def process_file(key):
 
         # --- Validar columnas requeridas ---
         required_cols = {
-            # Identificadores base y metadatos de venta
             "FECHA", "NUMERO_TICKET", "CANTIDAD_TICKET",
             "ID_SUCURSAL", "DESCRIP_SUCURSAL",
             "ID_ZONA_SUPERVISION", "DESC_ZONA_SUPERVICION",
@@ -66,35 +63,23 @@ def process_file(key):
             "DEPARTAMENTO", "DESC_DEPARTAMENTO",
             "RUBRO", "DESC_RUBRO",
             "SUBRUBRO", "DESC_SUBRUBRO",
-
-            # Métricas operativas
             "CANTIDAD_VENDIDA", "VALOR_ARTICULO",
             "VENTA_BRUTA", "MONTO_IMPUESTOS_INTERNOS",
             "MONTO_IVA", "COSTO_ARTICULO",
-
-            # Métricas financieras
             "VENTA_ARS", "COSTO_ARS", "MARGEN_ARS",
             "TIPO_CAMBIO", "VENTA_USD", "COSTO_USD", "MARGEN_USD",
-
-            # Enriquecimiento temporal
             "DIA_MES", "DIA_SEMANA"
         }
 
-        # Validar presencia de columnas
         missing_cols = required_cols - set(df.columns)
         if missing_cols:
-            raise ValueError(
-                f"❌ Columnas faltantes en {key}: {missing_cols}\n"
-                f"📋 Columnas detectadas en el Parquet ({len(df.columns)}): {list(df.columns)}"
-            )
-        else:
-            print(f"✅ Validación de columnas exitosa ({len(required_cols)} columnas requeridas presentes).")
+            raise ValueError(f"❌ Columnas faltantes en {key}: {missing_cols}")
+        print("✅ Validación de columnas exitosa.")
 
         # --- Agregar columnas de partición ---
         df["SUCURSAL"] = sucursal
         df["YEAR"] = year
         df["MONTH"] = month
-
 
         # --- Agregación por producto ---
         agg = (
@@ -142,17 +127,86 @@ def process_file(key):
 
         # --- Clasificación de cumplimiento ---
         objetivo = 0.20
-
         condiciones = [
             result["MARGEN_PORC_ARS"] < objetivo,
             result["MARGEN_PORC_ARS"] == objetivo,
             result["MARGEN_PORC_ARS"] > objetivo
         ]
         valores = ["no alcanzó", "igualó", "superó"]
-
         result["CUMPLIMIENTO_OBJETIVO"] = np.select(condiciones, valores, default="sin datos")
         print("🏁 Clasificación de cumplimiento calculada correctamente.")
 
+
+        print("🔍 Analizando estacionalidad y tendencias de ventas...")
+
+        #  TENDENCIA SEMANAL
+
+        tendencia_semanal_global = (
+            df.groupby("DIA_SEMANA")["VENTA_ARS"]
+              .mean()
+              .reindex(["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"])
+        )
+
+        tendencia_sucursal_semanal = (
+            df.groupby(["SUCURSAL","DIA_SEMANA"])["VENTA_ARS"]
+              .mean()
+              .reset_index()
+        )
+
+        pivot_semanal = tendencia_sucursal_semanal.pivot(
+            index="SUCURSAL", columns="DIA_SEMANA", values="VENTA_ARS"
+        ).reindex(columns=tendencia_semanal_global.index)
+
+        pivot_semanal["CORRELACION_SEMANAL"] = pivot_semanal.apply(
+            lambda row: row.corr(tendencia_semanal_global), axis=1
+        )
+        UMBRAL_CORR_SEMANAL = 0.7
+        pivot_semanal["SIGUE_TENDENCIA_SEMANAL"] = (
+            pivot_semanal["CORRELACION_SEMANAL"] >= UMBRAL_CORR_SEMANAL
+        )
+        print("📅 Tendencia semanal calculada correctamente.")
+
+        # TENDENCIA MENSUAL
+
+        tendencia_mensual_global = (
+            df.groupby("DIA_MES")["VENTA_ARS"]
+              .mean()
+              .sort_index()
+        )
+
+        tendencia_sucursal_mensual = (
+            df.groupby(["SUCURSAL","DIA_MES"])["VENTA_ARS"]
+              .mean()
+              .reset_index()
+        )
+
+        pivot_mensual = tendencia_sucursal_mensual.pivot(
+            index="SUCURSAL", columns="DIA_MES", values="VENTA_ARS"
+        ).reindex(columns=tendencia_mensual_global.index)
+
+        pivot_mensual["CORRELACION_MENSUAL"] = pivot_mensual.apply(
+            lambda row: row.corr(tendencia_mensual_global), axis=1
+        )
+        UMBRAL_CORR_MENSUAL = 0.7
+        pivot_mensual["SIGUE_TENDENCIA_MENSUAL"] = (
+            pivot_mensual["CORRELACION_MENSUAL"] >= UMBRAL_CORR_MENSUAL
+        )
+        print("🗓️ Tendencia mensual calculada correctamente.")
+
+        # MEGE FINAL
+
+        tendencia_flags = (
+            pivot_semanal[["CORRELACION_SEMANAL","SIGUE_TENDENCIA_SEMANAL"]]
+            .merge(
+                pivot_mensual[["CORRELACION_MENSUAL","SIGUE_TENDENCIA_MENSUAL"]],
+                left_index=True, right_index=True, how="outer"
+            )
+            .reset_index()
+            .rename(columns={"index":"SUCURSAL"})
+        )
+
+        result = result.merge(tendencia_flags, on="SUCURSAL", how="left")
+        print("📈 Detección de tendencias semanal y mensual completada correctamente.")
 
         # --- Escritura en S3 particionada ---
         for (suc, y, m), dfg in result.groupby(["SUCURSAL","YEAR","MONTH"]):

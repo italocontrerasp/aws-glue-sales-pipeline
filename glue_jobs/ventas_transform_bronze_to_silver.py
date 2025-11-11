@@ -30,6 +30,28 @@ error_count = 0
 error_files = []
 
 
+# --- Campos numéricos esperados ---
+INT_FIELDS = [
+    "NUMERO_TICKET",
+    "CANTIDAD_TICKET",
+    "ID_SUCURSAL",
+    "ID_ZONA_SUPERVISION",
+    "ID_ARTICULO",
+    "FAMILIA",
+    "DEPARTAMENTO",
+    "RUBRO",
+    "SUBRUBRO",
+    "CANTIDAD_VENDIDA"
+]
+
+FLOAT_FIELDS = [
+    "VALOR_ARTICULO",
+    "VENTA_BRUTA",
+    "MONTO_IMPUESTOS_INTERNOS",
+    "MONTO_IVA",
+    "COSTO_ARTICULO"
+]
+
 # --- Función para leer CSV de tipo de cambio desde S3 ---
 def load_exchange_rates():
     try:
@@ -119,6 +141,15 @@ def process_file(key, exchange_df):
         # Opcional: advertencia si hay columnas extra no esperadas
         if unexpected_cols:
             print(f"⚠️ Columnas adicionales detectadas (no esperadas en esquema BRONZE): {unexpected_cols}")
+
+        # --- Tipos numéricos ---
+        for col in INT_FIELDS:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0).astype(int)
+        #234234, 0.353543, 24234.456465 -> 234234,0,2434
+        
+        for col in FLOAT_FIELDS:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+        #234234, 0.353543, 24234.456465 -> 234234.0, 0.353543, 24234.456465
 
 
         # --- Agregar columnas de partición ---

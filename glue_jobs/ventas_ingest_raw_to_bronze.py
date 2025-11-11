@@ -27,28 +27,6 @@ success_count = 0
 error_count = 0
 error_files = []
 
-# --- Campos numéricos esperados ---
-INT_FIELDS = [
-    "NUMERO_TICKET",
-    "CANTIDAD_TICKET",
-    "ID_SUCURSAL",
-    "ID_ZONA_SUPERVISION",
-    "ID_ARTICULO",
-    "FAMILIA",
-    "DEPARTAMENTO",
-    "RUBRO",
-    "SUBRUBRO",
-    "CANTIDAD_VENDIDA"
-]
-
-FLOAT_FIELDS = [
-    "VALOR_ARTICULO",
-    "VENTA_BRUTA",
-    "MONTO_IMPUESTOS_INTERNOS",
-    "MONTO_IVA",
-    "COSTO_ARTICULO"
-]
-
 # --- Normalización del nombre de sucursal ---
 def extract_sucursal_name(key):
     base = os.path.basename(key)
@@ -132,24 +110,20 @@ def process_key(key):
             if unexpected_cols:
                 print(f"⚠️ Columnas adicionales detectadas (no esperadas en esquema BRONZE): {unexpected_cols}")
 
+            # Convertir todo a string
+            for c in df.columns:
+                df[c] = df[c].astype(str).str.strip()
+
 
             # --- Conversión de fecha ---
             df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
             df = df.dropna(subset=["FECHA"])
 
-            # --- Tipos numéricos ---
-            for col in INT_FIELDS:
-                df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0).astype(int)
-            #234234, 0.353543, 24234.456465 -> 234234,0,2434
-            
-            for col in FLOAT_FIELDS:
-                df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
-            #234234, 0.353543, 24234.456465 -> 234234.0, 0.353543, 24234.456465
-
             # --- Campos derivados ---
             df["YEAR"] = df["FECHA"].dt.year.astype(int)
             df["MONTH"] = df["FECHA"].dt.month.astype(int)
             df["SUCURSAL"] = sucursal
+
 
             # --- Escritura en formato Parquet particionado ---
             for (suc, y, m), dfg in df.groupby(["SUCURSAL", "YEAR", "MONTH"]):
