@@ -20,7 +20,12 @@ CREATE EXTERNAL TABLE IF NOT EXISTS mailamericas_gold.ventas (
     PRODUCTO_TOP_MARGEN        string,
     DIA_MES_TOP_VENTAS         int,
     DIA_SEMANA_TOP_VENTAS      string,
-    CUMPLIMIENTO_OBJETIVO      string
+    CUMPLIMIENTO_OBJETIVO      string,
+    CORRELACION_SEMANAL        double,
+    SIGUE_TENDENCIA_SEMANAL    boolean,
+    CORRELACION_MENSUAL        double,
+    SIGUE_TENDENCIA_MENSUAL    boolean
+
 )
 PARTITIONED BY (
     sucursal string,
