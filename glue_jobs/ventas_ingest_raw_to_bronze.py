@@ -28,7 +28,20 @@ error_count = 0
 error_files = []
 
 # --- Campos numéricos esperados ---
-NUMERIC_FIELDS = [
+INT_FIELDS = [
+    "NUMERO_TICKET",
+    "CANTIDAD_TICKET",
+    "ID_SUCURSAL",
+    "ID_ZONA_SUPERVISION",
+    "ID_ARTICULO",
+    "FAMILIA",
+    "DEPARTAMENTO",
+    "RUBRO",
+    "SUBRUBRO",
+    "CANTIDAD_VENDIDA"
+]
+
+FLOAT_FIELDS = [
     "VALOR_ARTICULO",
     "VENTA_BRUTA",
     "MONTO_IMPUESTOS_INTERNOS",
@@ -73,10 +86,7 @@ def process_key(key):
                 if df[c].dtype == "object":
                     df[c] = df[c].astype(str).str.strip()
 
-            print("df.dtypes")
-            print(df.dtypes)
-
-            # --- Validar columnas requeridas (esquema BRONZE) ---
+            # --- Validar columnas requeridas (RAW) ---
             required_cols = {
                 # Identificadores y metadatos base
                 "FECHA",
@@ -128,13 +138,17 @@ def process_key(key):
             df = df.dropna(subset=["FECHA"])
 
             # --- Tipos numéricos ---
-            df["CANTIDAD_VENDIDA"] = pd.to_numeric(df["CANTIDAD_VENDIDA"], errors="coerce").fillna(0).astype(int)
-            for col in NUMERIC_FIELDS:
+            for col in INT_FIELDS:
+                df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0).astype(int)
+            #234234, 0.353543, 24234.456465 -> 234234,0,2434
+            
+            for col in FLOAT_FIELDS:
                 df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+            #234234, 0.353543, 24234.456465 -> 234234.0, 0.353543, 24234.456465
 
             # --- Campos derivados ---
-            df["YEAR"] = df["FECHA"].dt.year.astype("int32")
-            df["MONTH"] = df["FECHA"].dt.month.astype("int8")
+            df["YEAR"] = df["FECHA"].dt.year.astype(int)
+            df["MONTH"] = df["FECHA"].dt.month.astype(int)
             df["SUCURSAL"] = sucursal
 
             # --- Escritura en formato Parquet particionado ---

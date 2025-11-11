@@ -161,7 +161,7 @@ def process_file(key, exchange_df):
 
         # --- Enriquecimiento temporal ---
         try:
-            df["DIA_MES"] = df["FECHA"].dt.day.astype("int")
+            df["DIA_MES"] = df["FECHA"].dt.day.astype(int)
         
             # Obtener el nombre del día en inglés
             df["DIA_SEMANA"] = df["FECHA"].dt.day_name()
