@@ -208,6 +208,16 @@ def process_file(key):
         result = result.merge(tendencia_flags, on="SUCURSAL", how="left")
         print("📈 Detección de tendencias semanal y mensual completada correctamente.")
 
+        # NOMBRE MESES
+
+        month_map = {
+            1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+            5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+            9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+        }
+        
+        result["month_name"] = result["MONTH"].map(month_map)
+
         # --- Escritura en S3 particionada ---
         for (suc, y, m), dfg in result.groupby(["SUCURSAL","YEAR","MONTH"]):
             try:
