@@ -24,8 +24,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS mailamericas_gold.ventas (
     CORRELACION_SEMANAL        double,
     SIGUE_TENDENCIA_SEMANAL    boolean,
     CORRELACION_MENSUAL        double,
-    SIGUE_TENDENCIA_MENSUAL    boolean
-
+    SIGUE_TENDENCIA_MENSUAL    boolean,
+    MONTH_NAME                 string 
 )
 PARTITIONED BY (
     sucursal string,
