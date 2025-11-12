@@ -99,23 +99,23 @@ def process_file(key):
 
         # --- Producto top margen ---
         top_producto = (
-            agg.loc[agg.groupby(["SUCURSAL","YEAR","MONTH"])["MARGEN_ARS"].idxmax()][
+            agg.loc[agg.groupby(["SUCURSAL","YEAR","MONTH"])["MARGEN_USD"].idxmax()][
                 ["SUCURSAL","YEAR","MONTH","DESC_ARTICULO"]
             ].rename(columns={"DESC_ARTICULO":"PRODUCTO_TOP_MARGEN"})
         )
 
         # --- Día del mes con mayores ventas ---
         dia_mes = (
-            df.groupby(["SUCURSAL","YEAR","MONTH","DIA_MES"])["VENTA_ARS"].sum().reset_index()
+            df.groupby(["SUCURSAL","YEAR","MONTH","DIA_MES"])["VENTA_USD"].sum().reset_index()
         )
-        dia_mes = dia_mes.loc[dia_mes.groupby(["SUCURSAL","YEAR","MONTH"])["VENTA_ARS"].idxmax()]
+        dia_mes = dia_mes.loc[dia_mes.groupby(["SUCURSAL","YEAR","MONTH"])["VENTA_USD"].idxmax()]
         dia_mes.rename(columns={"DIA_MES":"DIA_MES_TOP_VENTAS"}, inplace=True)
 
         # --- Día de la semana con mayores ventas ---
         dia_semana = (
-            df.groupby(["SUCURSAL","YEAR","MONTH","DIA_SEMANA"])["VENTA_ARS"].sum().reset_index()
+            df.groupby(["SUCURSAL","YEAR","MONTH","DIA_SEMANA"])["VENTA_USD"].sum().reset_index()
         )
-        dia_semana = dia_semana.loc[dia_semana.groupby(["SUCURSAL","YEAR","MONTH"])["VENTA_ARS"].idxmax()]
+        dia_semana = dia_semana.loc[dia_semana.groupby(["SUCURSAL","YEAR","MONTH"])["VENTA_USD"].idxmax()]
         dia_semana.rename(columns={"DIA_SEMANA":"DIA_SEMANA_TOP_VENTAS"}, inplace=True)
 
         # --- Merge de las métricas al DataFrame principal ---
@@ -128,9 +128,9 @@ def process_file(key):
         # --- Clasificación de cumplimiento ---
         objetivo = 0.20
         condiciones = [
-            result["MARGEN_PORC_ARS"] < objetivo,
-            result["MARGEN_PORC_ARS"] == objetivo,
-            result["MARGEN_PORC_ARS"] > objetivo
+            result["MARGEN_PORC_USD"] < objetivo,
+            result["MARGEN_PORC_USD"] == objetivo,
+            result["MARGEN_PORC_USD"] > objetivo
         ]
         valores = ["no alcanzó", "igualó", "superó"]
         result["CUMPLIMIENTO_OBJETIVO"] = np.select(condiciones, valores, default="sin datos")
@@ -142,19 +142,19 @@ def process_file(key):
         #  TENDENCIA SEMANAL
 
         tendencia_semanal_global = (
-            df.groupby("DIA_SEMANA")["VENTA_ARS"]
+            df.groupby("DIA_SEMANA")["VENTA_USD"]
               .mean()
               .reindex(["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"])
         )
 
         tendencia_sucursal_semanal = (
-            df.groupby(["SUCURSAL","DIA_SEMANA"])["VENTA_ARS"]
+            df.groupby(["SUCURSAL","DIA_SEMANA"])["VENTA_USD"]
               .mean()
               .reset_index()
         )
 
         pivot_semanal = tendencia_sucursal_semanal.pivot(
-            index="SUCURSAL", columns="DIA_SEMANA", values="VENTA_ARS"
+            index="SUCURSAL", columns="DIA_SEMANA", values="VENTA_USD"
         ).reindex(columns=tendencia_semanal_global.index)
 
         pivot_semanal["CORRELACION_SEMANAL"] = pivot_semanal.apply(
@@ -169,19 +169,19 @@ def process_file(key):
         # TENDENCIA MENSUAL
 
         tendencia_mensual_global = (
-            df.groupby("DIA_MES")["VENTA_ARS"]
+            df.groupby("DIA_MES")["VENTA_USD"]
               .mean()
               .sort_index()
         )
 
         tendencia_sucursal_mensual = (
-            df.groupby(["SUCURSAL","DIA_MES"])["VENTA_ARS"]
+            df.groupby(["SUCURSAL","DIA_MES"])["VENTA_USD"]
               .mean()
               .reset_index()
         )
 
         pivot_mensual = tendencia_sucursal_mensual.pivot(
-            index="SUCURSAL", columns="DIA_MES", values="VENTA_ARS"
+            index="SUCURSAL", columns="DIA_MES", values="VENTA_USD"
         ).reindex(columns=tendencia_mensual_global.index)
 
         pivot_mensual["CORRELACION_MENSUAL"] = pivot_mensual.apply(
