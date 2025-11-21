@@ -17,14 +17,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS mailamericas_gold.ventas (
     MARGEN_USD                 double,
     MARGEN_PORC_ARS            double,
     MARGEN_PORC_USD            double,
-    PRODUCTO_TOP_MARGEN        string,
-    DIA_MES_TOP_VENTAS         int,
-    DIA_SEMANA_TOP_VENTAS      string,
     CUMPLIMIENTO_OBJETIVO      string,
-    CORRELACION_SEMANAL        double,
-    SIGUE_TENDENCIA_SEMANAL    boolean,
-    CORRELACION_MENSUAL        double,
-    SIGUE_TENDENCIA_MENSUAL    boolean,
     MONTH_NAME                 string 
 )
 PARTITIONED BY (
