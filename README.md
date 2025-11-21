@@ -77,13 +77,13 @@ Cada capa representa un nivel de calidad, granularidad y preparación de los dat
 
 -mailamericas_bronze.ventas
 
-![alt text](image.png)
+![bronze](docs/screenshots/mailamericas_bronze.ventas.png)
 
 
 -mailamericas_silver.ventas
 
-![alt text](image-1.png)
+![silver](docs/screenshots/mailamericas_silver.ventas.png)
 
 -mailamericas_gold.ventas
 
-![alt text](image-2.png)
+![gold](docs/screenshots/mailamericas_gold.ventas.png)
