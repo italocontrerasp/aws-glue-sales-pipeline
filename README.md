@@ -3,7 +3,7 @@
 
 **Autor:** Italo Contreras Pérez  
 **Rol:** Senior Data Engineer  
-**Stack:** AWS Glue, S3, Athena, Python, PyArrow, Pandas
+**Stack:** AWS Glue, S3, Athena, Python, PyArrow, Pandas, Power BI
 
 ---
 
@@ -11,7 +11,9 @@
 
 El proyecto implementa un pipeline de datos de ventas multi-capa (**Raw → Bronze → Silver → Gold**) en AWS, diseñado para transformar y analizar la información de ventas proveniente de archivos Excel (.xlsx) por sucursal.  
 
-Cada capa representa un nivel de calidad, granularidad y preparación de los datos para análisis y visualización en **Athena** o **QuickSight**.
+Cada capa representa un nivel de calidad, granularidad y preparación de los datos para análisis y visualización en **Athena** o **Power BI**.
+
+![bronze](docs/screenshots/mailamericas_bronze_ventas.png)
 
 ---
 
@@ -73,17 +75,18 @@ Cada capa representa un nivel de calidad, granularidad y preparación de los dat
 
 ---
 
-## Capturas
+## Tablas
 
--mailamericas_bronze.ventas
+mailamericas_bronze.ventas
 
-![bronze](docs/screenshots/mailamericas_bronze.ventas.png)
+![bronze](docs/screenshots/mailamericas_bronze_ventas.png)
 
 
--mailamericas_silver.ventas
+mailamericas_silver.ventas
 
-![silver](docs/screenshots/mailamericas_silver.ventas.png)
+![silver](docs/screenshots/mailamericas_silver_ventas.png)
 
--mailamericas_gold.ventas
+mailamericas_gold.ventas
 
-![gold](docs/screenshots/mailamericas_gold.ventas.png)
+![gold](docs/screenshots/mailamericas_gold_ventas.png)
+
