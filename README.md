@@ -13,6 +13,8 @@ El proyecto implementa un pipeline de datos de ventas multi-capa (**Raw → Bron
 
 Cada capa representa un nivel de calidad, granularidad y preparación de datos para su uso analítico en **Athena**, **Power BI** y posibles chatbots de AI basados en datos.
 
+test
+
 ---
 
 ## 📌 Arquitectura
