@@ -120,12 +120,6 @@ def process_file(key):
         
         result["month_name"] = result["MONTH"].map(month_map)
 
-        print("result")
-        print(result)
-        
-        print("result.dtypes")
-        print(result.dtypes)
-
         # --- Escritura en S3 particionada ---
         for (suc, y, m), dfg in result.groupby(["SUCURSAL","YEAR","MONTH"]):
             try:
